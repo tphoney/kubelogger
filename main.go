@@ -14,16 +14,17 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 4 {
-		fmt.Println("Usage: go run main.go kubeConfigPath namespace podName")
+	if len(os.Args) != 5 {
+		fmt.Println("Usage: go run main.go kubeConfigPath namespace podName containerName")
 		return
 	}
 
 	kubeConfigPath := os.Args[1]
 	namespace := os.Args[2]
 	podName := os.Args[3]
+	containerName := os.Args[4]
 
-	fmt.Printf("kube config path: %q, namespace: %q, pod: %q\n", kubeConfigPath, namespace, podName)
+	fmt.Printf("kube config path: %q, namespace: %q, pod: %q, container %q\n", kubeConfigPath, namespace, podName, containerName)
 
 	// path-to-kubeconfig -- for example, /root/.kube/config
 	config, _ := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
@@ -35,11 +36,15 @@ func main() {
 	// print the pod names
 	for _, pod := range pods.Items {
 		fmt.Printf("Pod name %s\n", pod.GetName())
+		// print the container names
+		for _, container := range pod.Spec.Containers {
+			fmt.Printf("Container name %s\n", container.Name)
+		}
 	}
 
 	opts := &v1.PodLogOptions{
-		Follow: true,
-		//Container: "nginx-1-6f56f68fd8-n7dqs nginx-1",
+		Follow:    true,
+		Container: containerName,
 	}
 
 	ctx := context.Background()
